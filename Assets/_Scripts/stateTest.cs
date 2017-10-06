@@ -1,47 +1,51 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-
 
 namespace UnityStandardAssets.Characters.ThirdPerson
 {
 
-    public class BoggyAI : MonoBehaviour
+    public class stateTest : MonoBehaviour
     {
 
-        //for audio
-        public AudioClip chaseSound;
-        AudioSource audioPoint;
-        public bool alreadyPlayed = false;
-
-        public NavMeshAgent agent;
         public ThirdPersonCharacter character;
+        public NavMeshAgent agent;
 
         public enum State
         {
-            PATROL,
+            PATROLS,
             CHASE,
-            AVOID
+            INVESTIGATE
         }
 
         public State state;
         private bool alive;
 
-        // Variables for Patrolling
+        // Variables for PATROLSling
         public GameObject[] waypoints;
         private int waypointInd;
-        public float patrolSpeed = 0.5f;
+        public float PATROLSpeed = 0.5f;
 
         // Variables for Chasing 
         public float chaseSpeed = 1f;
         public GameObject target;
+
+        // Variables for Investigate 
+        private Vector3 investiageSpot;
+        private float timer = 0;
+        public float investigateWait = 10;
+
+        // Variables for Sight
+        public float heightMultiplier;
+        public float sightDist;
 
         // Use this for initialization
         void Start()
         {
             agent = GetComponent<NavMeshAgent>();
             character = GetComponent<ThirdPersonCharacter>();
-            audioPoint = GetComponent<AudioSource>();
+            //audioPoint = GetComponent<AudioSource>();
 
             agent.updatePosition = true;
             agent.updateRotation = false;
@@ -51,18 +55,22 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             waypointInd = Random.RandomRange(0, waypoints.Length);
 #pragma warning restore CS0618 // Type or member is obsolete
 
+            heightMultiplier = 1.36f;
+
             // must state with an state, or it will not start
-            state = BoggyAI.State.PATROL;
+            state = stateTest.State.PATROLS;
 
             alive = true;
 
             // start FSM
             //StartCoroutine(FSM());
+
         }
 
+        // Update is called once per frame
         void Update()
         {
-            StartCoroutine(FSM());
+
         }
 
         IEnumerator FSM()
@@ -71,24 +79,23 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             {
                 switch (state)
                 {
-                    case State.PATROL:
-                        Patrol();
+                    case State.PATROLS:
+                        PATROLS();
                         break;
                     case State.CHASE:
                         Chase();
                         break;
-                    case State.AVOID:
+                    case State.INVESTIGATE:
                         break;
                 }
                 yield return null;
             }
         }
 
-
-        void Patrol()
+        void PATROLS()
         {
-            agent.speed = patrolSpeed;
-            if (Vector3.Distance (this.transform.position, waypoints[waypointInd].transform.position) >= 2)
+            agent.speed = PATROLSpeed;
+            if (Vector3.Distance(this.transform.position, waypoints[waypointInd].transform.position) >= 2)
             {
                 agent.SetDestination(waypoints[waypointInd].transform.position);
                 character.Move(agent.desiredVelocity, false, false);
@@ -113,27 +120,34 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 
         }
 
-        void Avoid()
+        void Investigate()
         {
-            agent.speed = 0;
-            agent.SetDestination(this.transform.position);
-            transform.LookAt(target.transform.position);
+            timer += Time.deltaTime;
+            //agent.SetDestination(this.transform.position);
             character.Move(Vector3.zero, false, false);
+            //transform.LookAt(investiageSpot);
+            transform.LookAt(target.transform.position);
+            if (timer >= investigateWait)
+            {
+                state = stateTest.State.PATROLS;
+                timer = 0;
+            }
         }
 
-        private void OnTriggerEnter(Collider col)
+
+        void OnTriggerEnter(Collider col)
         {
             if (col.tag == "Player")
             {
-                if (!alreadyPlayed)
-                {
-                    audioPoint.PlayOneShot(chaseSound);
-                    alreadyPlayed = true;
-                }
-                state = BoggyAI.State.CHASE;
+
                 target = col.gameObject;
+                //agent.SetDestination(this.transform.position);
+                //character.Move(Vector3.zero, false, false);
+                //transform.LookAt(investiageSpot);
+                transform.LookAt(target.transform.position);
+                state = stateTest.State.INVESTIGATE;
+
             }
         }
     }
 }
-
