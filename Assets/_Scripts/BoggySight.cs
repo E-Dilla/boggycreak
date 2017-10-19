@@ -20,9 +20,9 @@ namespace UnityStandardAssets.Characters.ThirdPerson
         public enum State
         {
             PATROL,
+            NIGHTPATROL,
             CHASE,
             INVESTIGATE,
-            PATROLS
         }
 
         public State state;
@@ -32,6 +32,9 @@ namespace UnityStandardAssets.Characters.ThirdPerson
         public GameObject[] waypoints;
         private int waypointInd;
         public float patrolSpeed = 0.5f;
+
+        // Variables for Night Patrolling
+        public GameObject[] nightWaypoints;
 
         // Variables for Chasing 
         public float chaseSpeed = 1f;
@@ -58,6 +61,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             agent.updatePosition = true;
             agent.updateRotation = false;
 
+            nightWaypoints = GameObject.FindGameObjectsWithTag("nightwaypoint");
             waypoints = GameObject.FindGameObjectsWithTag("waypoint");
 #pragma warning disable CS0618 // Type or member is obsolete
             waypointInd = Random.RandomRange(0, waypoints.Length);
@@ -71,7 +75,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             alive = true;
 
             // start FSM
-            //StartCoroutine(FSM());
+            StartCoroutine(FSM());
         }
 
         void Update()
@@ -105,14 +109,19 @@ namespace UnityStandardAssets.Characters.ThirdPerson
                     case State.PATROL:
                         Patrol();
                         break;
+                    case State.NIGHTPATROL:
+                        NightPatrol();
+                        break;
                     case State.CHASE:
                         Chase();
                         break;
                     case State.INVESTIGATE:
+                        Investigate();
                         break;
                 }
                 yield return null;
             }
+
         }
 
 
@@ -136,6 +145,26 @@ namespace UnityStandardAssets.Characters.ThirdPerson
             }
         }
 
+        void NightPatrol()
+        {
+            agent.speed = patrolSpeed;
+            if (Vector3.Distance(this.transform.position, nightWaypoints[waypointInd].transform.position) >= 2)
+            {
+                agent.SetDestination(nightWaypoints[waypointInd].transform.position);
+                character.Move(agent.desiredVelocity, false, false);
+            }
+            else if (Vector3.Distance(this.transform.position, nightWaypoints[waypointInd].transform.position) <= 2)
+            {
+#pragma warning disable CS0618 // Type or member is obsolete
+                waypointInd = Random.RandomRange(0, nightWaypoints.Length);
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
+            else
+            {
+                character.Move(Vector3.zero, false, false);
+            }
+        }
+
         void Chase()
         {
             agent.speed = chaseSpeed;
@@ -147,15 +176,17 @@ namespace UnityStandardAssets.Characters.ThirdPerson
         void Investigate()
         {
             timer += Time.deltaTime;
-            //agent.SetDestination(this.transform.position);
+            agent.SetDestination(this.transform.position);
             character.Move(Vector3.zero, false, false);
-            //transform.LookAt(investiageSpot);
-            transform.LookAt(target.transform.position);
+            transform.LookAt(investiageSpot);
+            //transform.LookAt(target.transform.position);
+            
             if (timer >= investigateWait)
             {
                 state = BoggySight.State.PATROL;
                 timer = 0;
             }
+            
         }
 
 
@@ -169,7 +200,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
                     audioPoint.PlayOneShot(chaseSound);
                     alreadyPlayed = true;
                 }
-                investigation = true;
+                //investigation = true;
                 state = BoggySight.State.INVESTIGATE;
                 target = col.gameObject;
             }
@@ -209,8 +240,9 @@ namespace UnityStandardAssets.Characters.ThirdPerson
                 }
             }
 
-            StartCoroutine(FSM());
 
+
+            /*
             if (investigation)
             {
                 agent.speed = 0;
@@ -220,12 +252,13 @@ namespace UnityStandardAssets.Characters.ThirdPerson
                 character.Move(Vector3.zero, false, false);
                 if (timer >= investigateWait)
                 {
-                    state = BoggySight.State.CHASE;
+                    state = BoggySight.State.PATROL;
                     investigation = false;
                     //sightSpear.SetActive(false);
                     timer = 0;
                 }
             }
+            */
         }
     }
 }
