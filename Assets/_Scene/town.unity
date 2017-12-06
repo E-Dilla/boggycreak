@@ -361,8 +361,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 301.11, y: 259.09}
-  m_SizeDelta: {x: 45.52, y: 45.8}
+  m_AnchoredPosition: {x: 289.18, y: 259.09}
+  m_SizeDelta: {x: 69.37, y: 45.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &101058458
 MonoBehaviour:
@@ -4567,6 +4567,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   clockTime: 0
+  hourText: {fileID: 101058459}
+  hourCount: 7
+  hourPerSecond: 0.065
 --- !u!4 &1819994700
 Transform:
   m_ObjectHideFlags: 0

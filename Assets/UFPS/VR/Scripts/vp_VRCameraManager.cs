@@ -333,7 +333,7 @@ public class vp_VRCameraManager : MonoBehaviour
 
 		vp_Gameplay.IsVR = true;
 
-		UnityEngine.VR.VRSettings.enabled = true;
+		UnityEngine.XR.XRSettings.enabled = true;
 
 		TryEnsureSingleAudioListener();
 
@@ -364,7 +364,7 @@ public class vp_VRCameraManager : MonoBehaviour
 
 		vp_Gameplay.IsVR = false;
 
-		UnityEngine.VR.VRSettings.enabled = false;
+		UnityEngine.XR.XRSettings.enabled = false;
 		RestorePlayerHierarchy();
 
 		if (!m_AppQuitting)
